@@ -1,0 +1,14 @@
+---
+- name: Query server times and store them locally
+  hosts: web_servers
+  gather_facts: false
+  tasks:
+    - name: Take time on server
+      shell: 'date'
+      register: date
+      changed_when: false
+- name: Save times to localhost
+  vars:
+    record: "{{ inventory_hostname }} time: {{ date.stdout_lines[0] }}"
+  shell: "echo '{{ record }}' >> /tmp/times.txt"
+  delegate_to: localhost

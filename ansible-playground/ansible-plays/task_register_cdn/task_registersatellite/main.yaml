@@ -1,0 +1,42 @@
+- name: Install katello,Satellite registration with activation key
+  hosts: all
+  gather_facts: false
+  become: true
+  vars_files: vars.yaml
+  tasks:
+    - name: Download katello-ca-consumer-latest.noarch.rpm
+      get_url:
+        url: "{{ katello_url }}"
+        dest: /tmp/
+        validate_certs: no
+    - name: Install katello-ca-consumer-latest.noarch.rpm package.
+      yum:
+        name: /tmp/katello-ca-consumer-latest.noarch.rpm
+        state: present
+
+    - name: Register with activationkey
+      redhat_subscription:
+        state: present
+        force_register: true
+        activationkey: "{{ satellite_actkey }}"
+        org_id: "{{ satellite_org }}"
+
+    - name: Enable satellite repo and install satellite packages
+      block:
+
+        - name: Enable satellite repo
+          rhsm_repository:
+            name: "{{ satellite_tools_repo }}"
+            state: enabled 
+
+        - name: install katello packages
+          yum:
+            name: "{{ item }}"
+            state: present
+          loop:
+            - katello-host-tools
+            - katello-agent
+            - katello-host-tools-fact-plugin 
+      when: 
+        - install_satellite_tools
+

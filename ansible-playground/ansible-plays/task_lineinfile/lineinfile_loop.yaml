@@ -1,0 +1,21 @@
+---
+- name: Configure the Apache HTTP Server
+  hosts: web_servers
+  become: True
+  gather_facts: False
+  tasks:
+    - name: Ensure proper configuration of the Apache HTTP Server
+      lineinfile:
+        dest: /etc/httpd/conf/httpd.conf
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        state: present
+      loop:
+        - regexp: '^Listen 80$'
+          line: 'Listen 8181'
+        - regexp: '^ServerAdmin root@localhost'
+           line: 'ServerAdmin support@example.com'
+        - regexp: '^DocumentRoot "/var/www/html"'
+          line: 'DocumentRoot "/var/www/web"'
+        - regexp: '^<Directory "/var/www/html">'
+          line: '<Directory "/var/www/web">'

@@ -1,0 +1,32 @@
+- name: to use var and taks files
+  hosts: webservers
+  become: yes
+  vars: 
+    - rule: http
+  tasks:
+    - name: include vars from yaml file
+      include_vars: vars/variables.yml
+     
+    - name: Include env file and set vars
+      import_tasks: tasks/environment.yml
+      vars: 
+        - package: httpd
+        - service: httpd
+        - svc_state: started
+
+    - name: Install fw
+      yum:
+        name: firewalld
+        state: latest
+
+    - name: open port for {{rule}}
+      firewalld:
+        service: "{{ rule }}"
+        immediate: true
+        permanent: true
+        state: enabled
+  
+    - name: create index.html
+      copy: 
+        content: "{{ ansible_fqdn }} has been customized using Ansible on the {{ ansible_date_time.date }}\n"
+        dest: /var/www/html/index.html

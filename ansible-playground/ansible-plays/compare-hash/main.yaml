@@ -1,0 +1,12 @@
+- name: print the md5sum of a file
+  gather_facts: false
+  hosts: all
+  tasks:
+    - name: Verify the checksum of a file
+      stat:
+        path: /path/to/file
+        checksum_algorithm: md5
+      register: result
+
+    - debug
+        msg: "The checksum of the file is {{ result.stat.checksum }}"

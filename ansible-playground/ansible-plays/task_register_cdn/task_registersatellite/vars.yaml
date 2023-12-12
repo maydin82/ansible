@@ -1,0 +1,7 @@
+satellite_org: aydin
+satellite_actkey: ceph4ak
+katello_url: https://satellite.aydin.lab/pub/katello-ca-consumer-latest.noarch.rpm
+satellite_tools_repo: rhel-7-server-satellite-tools-6.6-rpms
+install_satellite_tools: true
+
+

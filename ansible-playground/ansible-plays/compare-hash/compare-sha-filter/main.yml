@@ -1,0 +1,32 @@
+- name: compare hash
+  gather_facts: no
+  hosts: localhost
+  become: true
+  vars_files:
+    -  var-file.yml 
+  tasks:
+    - name: stat
+      stat:
+        path: "{{ item.file }}"
+        checksum_algorithm: sha256
+      loop: "{{ files }}"
+      register: stat_results
+
+#    - debug:
+#        msg: OK
+#      loop: "{{ stat_results.results }}"
+#      when: item.stat.checksum == item.item.hash
+#      loop_control:
+#        label: "{{ item.stat.path }}"
+
+    - name: output the result
+      debug: 
+        var: stat_results
+    - name: assert style
+      assert:
+        that:
+          - item.stat.checksum == item.item.hash
+        fail_msg: "{{item.item.file }} is NOK"
+        success_msg: "{{item.item.file }} is OK"
+      loop: "{{ stat_results.results }}"
+      

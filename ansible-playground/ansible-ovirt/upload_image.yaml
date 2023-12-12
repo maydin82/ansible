@@ -1,0 +1,25 @@
+
+- name: "[Play 1] upload image to data_new datastore"
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  tasks:
+
+    - name: Obtain SSO token with using username/password credentials
+      ovirt_auth:
+        url: https://auh-auq-an-nfviplus-rk2-rhvm1.tcloud/ovirt-engine/api
+        username: admin@internal
+        ca_file: /etc/pki/ovirt-engine/ca.pem
+        password: redhat
+    - name: upload image 
+      ovirt_disk:
+        auth: "{{ ovirt_auth }}"
+        name: rhel78
+        upload_image_path: /root/rhel-server-7.8-x86_64-dvd.iso
+        storage_domain: data_new
+        size: 5GiB
+        wait: true
+        bootable: true
+        format: raw
+        content_type: iso
+

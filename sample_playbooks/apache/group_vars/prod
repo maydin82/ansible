@@ -1,0 +1,2 @@
+package_1: httpd
+package_2: firewalld

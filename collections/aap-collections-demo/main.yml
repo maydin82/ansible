@@ -1,0 +1,16 @@
+---
+- name: set SELinux to enforcing
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: install dependencies
+      ansible.builtin.yum:
+        name: python3-libselinux
+        state: present
+    - name: set SElinux to enforcing
+      ansible.posix.selinux:
+        policy: targeted
+        state: enforcing
+    - name: sleep for 120 sec
+      command: sleep 120

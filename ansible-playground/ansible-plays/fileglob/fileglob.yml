@@ -1,0 +1,12 @@
+- name: Test
+  hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Test fileglob lookup plugin
+      debug:
+        msg: "{{ lookup('fileglob', '~/.bash*') }}"
+          
+    - name: Test fileglob query plugin
+      debug:
+        msg: "{{ query('fileglob', '~/.bash*') }}"
+

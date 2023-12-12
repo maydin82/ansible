@@ -1,0 +1,11 @@
+  - Start web server
+    service:
+      name: httpd
+      status: started
+
+  - name: Check web site from web server
+    uri:
+      url: http://{{ ansible_fqdn }}
+      return_content: yes
+    register: example_webpage
+    failed_when: example_webpage.status != 200

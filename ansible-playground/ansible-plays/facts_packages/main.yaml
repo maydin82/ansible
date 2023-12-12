@@ -1,0 +1,17 @@
+###playbook calls the package_facts module, the debug module to display the content of the ansible_facts.packages variable, and the debug module again to view the version of the installed NetworkManager package.###
+---
+- name: Display installed packages
+  hosts: localhost
+  tasks:
+    - name: Gather info on installed packages
+      package_facts:
+        manager: auto
+
+    - name: List installed packages
+      debug:
+        var: ansible_facts.packages
+
+    - name: Display NetworkManager version
+      debug:
+        msg: "Version {{ansible_facts.packages['NetworkManager'][0].version}}"
+      when: "'NetworkManager' in ansible_facts.packages"

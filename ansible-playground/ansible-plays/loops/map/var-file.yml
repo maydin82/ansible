@@ -1,0 +1,8 @@
+public_key_lists:
+  - username: johnd
+    public_keys:
+      - file1
+      - file2
+  - username: janed
+    public_keys:
+      - file1

@@ -1,0 +1,11 @@
+- name: Ensure firewall sources configuration
+  firewalld:
+    source: "{{ item.source if item.source is defined else ommit }}"
+    zone: "{{ item.zone if item.zone is defined else ommit }}"
+    permanent: yes
+    state: "{{ item.state | default('enabled') }}"
+    service: "{{ item.service if item.service is defined else ommit }}"
+    immediate: true
+    port: "{{ item.port if item.port is defined else ommit }}"
+  loop: "{{ firewall_rules }}"
+  notify: reload firewalld

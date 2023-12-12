@@ -1,0 +1,15 @@
+- name: find
+  hosts: localhost
+  become: true
+  tasks:
+
+
+    - name: Find deployed webapp files
+      find:
+        paths: /etc
+        recurse: yes
+      register: find_files
+
+    - name: output
+      debug:
+       var: find_files

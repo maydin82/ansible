@@ -1,0 +1,18 @@
+- name: run yum update te
+  hosts: all
+  tasks:
+    - name: run yum update
+      yum:
+        name: nmap
+        state: present
+
+    - name: run yum update
+      yum:
+        name: tower-cli
+        state: absent
+
+    - name: run yum update
+      yum:
+        name: holele
+        state: absent
+

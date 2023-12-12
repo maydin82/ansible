@@ -1,0 +1,16 @@
+
+#the first task is delegated to each of the HAProxy load balancers in the Ansible group lbservers in turn, removing the managed host from all the load balancers. Then, the second task, which is not delegated, stops the web server on the managed host. This task runs for each host in the play.
+
+- name: Remove the server from HAProxy
+  haproxy:
+    state: disabled
+    host: "{{ ansible_facts['fqdn'] }}"
+    socket: /var/lib/haproxy/stats
+  delegate_to: "{{ item }}"
+  loop: "{{ groups['lbservers'] }}"
+- name: Make sure Apache HTTPD is stopped
+  service:
+    name: httpd
+    state: stopped
+
+#the fact ansible_facts['fqdn'] was used. The FQDN for the managed host is used, not localhost.

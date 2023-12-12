@@ -1,0 +1,5 @@
+users:
+  - username: ops1
+    groups: webadmin
+  - username: ops2
+    groups: webadmin

@@ -1,0 +1,8 @@
+- name: creates de belirtilen dosya yoksa kos
+  hosts: all
+  tasks:
+    - name: /dev/vdb1 is partitioned
+      command: >
+        parted --script /dev/vdb mklabel gpt mkpart primary 1MiB 100%
+      args:
+        creates: /dev/vdb1

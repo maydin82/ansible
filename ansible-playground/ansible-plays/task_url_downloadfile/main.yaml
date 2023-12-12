@@ -1,0 +1,14 @@
+- name: copy the file from remote url
+  hosts: all
+  gather_facts: false
+  vars:
+    config_file_url: "https://releases.ansible.com/ansible-tower/setup/ansible-tower-setup-latest.tar.gz"
+    config_file_dst: "/tmp/"
+  tasks:
+    - name: The {{ config_file_dst }} file has been installed
+      get_url:
+        url: "{{ config_file_url }}"
+        dest: "{{ config_file_dst }}"
+        owner: mustafa
+        group: mustafa
+        force: yes

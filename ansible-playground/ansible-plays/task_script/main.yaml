@@ -1,0 +1,5 @@
+- name: The script module supports executing a script on managed hosts, and fails if the return code for that script is nonzero. The script must exist on the control node and is transferred to and executed on the managed hosts.
+  hosts: all
+  gather_facts: false
+  tasks:
+    - script: check_free_memory

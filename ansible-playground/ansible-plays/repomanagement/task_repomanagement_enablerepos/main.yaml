@@ -1,0 +1,13 @@
+- name: Enable some repos
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: enable repos
+      rhsm_repository:
+        name: "{{ item }}"
+        state: enabled
+      loop:
+        - rhel-7-server-rhceph-3-tools-rpms
+        - rhel-7-server-ansible-2.6-rpms
+

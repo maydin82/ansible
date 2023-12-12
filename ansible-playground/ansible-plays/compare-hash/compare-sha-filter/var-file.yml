@@ -1,0 +1,5 @@
+files:
+  - file: /etc/passwd
+    hash: c1d8b4c667192802f97aa814906ce21c23b301a67f6332b7a7fb7dc075466b783
+  - file: /etc/hosts
+    hash: d76cc747a5b0c87f52f05d38187bcad29c0481d98ce425b1627b57d1634447e4

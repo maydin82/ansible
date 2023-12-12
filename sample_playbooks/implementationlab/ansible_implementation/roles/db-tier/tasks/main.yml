@@ -1,0 +1,70 @@
+---
+# tasks file for roles/db-tier
+- name: Install mysql
+  yum:
+    name: "{{item }}"
+    state: latest
+  loop:
+    - "{{ db_pkg }}"
+- name: Start mysql
+  service: 
+    name: "{{ db_srv  }}"
+    enabled: true
+    state: started
+
+- name: Start firewalls
+  service: 
+    name: firewalld
+    state: started
+    enabled: true
+
+- name: open mysql port
+  firewalld:
+    service: mysql
+    state: enabled
+    immediate: true
+    permanent: true
+
+- name: check if root password is set
+  shell: >
+    mysqladmin -u root status
+  changed_when: false
+  failed_when: false
+  register: root_pwd_check
+
+- name: copy my /root/.my.cnf  content
+  copy: 
+    content: |
+      [client]
+      user=root
+      password=redhat
+      
+    dest: /root/.my.cnf  
+- name: Setting up mariadb pass
+  mysql_user: 
+    name: "{{ db['user'] }}"
+    password: "{{ db['password'] }}"
+  when: root_pwd_check.rc == 0
+
+- name: DB users have privileges on all DBs
+  mysql_user:
+    name: "{{ db['user'] }}"
+    priv: "*.*:ALL"
+    append_privs: yes
+    password: "{{ db['password'] }}"
+    host: "{{ item }}"
+  loop:
+    - "{{ inventory_hostname }}"
+    - '%'
+
+- name: Copy db dump file
+  copy: 
+    src: "{{ db['backupfile'] }}"
+    dest: /tmp
+
+- name: Restore DB
+  mysql_db:
+    name: "{{ db['database'] }}"
+    state: import
+    target: "/tmp/{{ db['backupfile'] }}"
+    login_password: "{{ db['password'] }}"

@@ -1,0 +1,49 @@
+---
+  - name: Install and start apache httpd
+    hosts: manager
+    become: yes
+    vars:
+      content: "This is ansible test page in {{ ansible_fqdn }} ({{ ansible_default_ipv4.address }}) , {{ ansible_date_time.date }}\n"
+    vars_files:
+      - vars/services_apache.yml
+       
+    tasks:
+      - name: httpd package is present
+        yum:
+          name: 
+            - "{{ package_1 }}"
+            - "{{ package_2 }}"
+          state: latest
+
+      - name: correct index.html is present
+        copy:
+          src: basic_apache_files/index.html
+          dest: /var/www/html/index.html
+
+      - name: httpd is started
+        service:
+          name: "{{ package_1 }}"
+          state: started
+          enabled: true   
+
+      - name: firewalld permits {{ firewall_service }}  service
+        firewalld:
+          service: "{{ firewall_service }}"
+          permanent: true 
+          state: enabled
+          immediate: yes
+
+      - name: send the content to web server
+        copy:
+          content: "{{ content }}"
+          dest: /var/www/html/index.html
+
+  - name: Test intranet web server
+    gather_facts: no
+    hosts: localhost
+    become: no
+    tasks:
+      - name: connect to intranet web server
+        uri:
+          url: http://manager
+          status_code: 200

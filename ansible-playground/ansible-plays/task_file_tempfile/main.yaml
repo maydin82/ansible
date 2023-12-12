@@ -1,0 +1,8 @@
+- name: create a temporary file
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: create temporary build directory
+      tempfile:
+        state: directory
+        suffix: build

@@ -1,0 +1,11 @@
+- name: test for mitogen
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: get the list of packages
+      yum: 
+        list: installed
+      register: yum_pack
+
+    - debug:
+        var: yum_pack

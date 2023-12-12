@@ -1,0 +1,10 @@
+- name: Reactivate Hosts
+  shell: /sbin/activate.sh {{ active_hosts_string }}
+  run_once: yes                                             <<<<<<
+  delegate_to: monitor.example.com
+  vars:
+    active_hosts_string: "{{ ansible_play_batch | join(' ')}}"
+
+# Setting the run_once: yes keyword causes a task to run once for each batch. If you only need to run a task once for all hosts in a play, and the play has multiple batches, then you can add the following conditional to the task:
+#when: inventory_hostname == ansible_play_hosts[0]
+#This conditional runs the task only for the first host in the play.

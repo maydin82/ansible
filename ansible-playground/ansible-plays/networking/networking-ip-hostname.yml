@@ -1,0 +1,23 @@
+- name: networking 
+  gather_facts: false
+  hosts: localhost
+  tasks:
+
+    - name: Collect only network related facts
+      setup:
+        gather_subset:
+           - '!all'
+           - network
+
+    - name: print hostname
+      debug:
+        msg: "{{ ansible_facts  }}"
+    - name: print hostname
+      debug:
+        msg: hostname of the server is {{ ansible_facts['hostname'] }}
+
+    - name: print ip
+      debug:
+        msg: ip of the server is {{ ansible_facts['all_ipv4_addresses'] }}
+
+

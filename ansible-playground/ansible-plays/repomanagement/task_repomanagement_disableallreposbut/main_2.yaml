@@ -1,0 +1,17 @@
+- name: disable all repos except one
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Disable all repositories
+      rhsm_repository:
+        name: '*'
+        state: disabled
+
+    - name: Enable only required repos 
+      rhsm_repository:
+        name: "{{ item }}"
+        state: enabled
+      with_items:
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-satellite-tools-6.2-rpms

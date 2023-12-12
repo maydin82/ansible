@@ -1,0 +1,12 @@
+- name: test if a string is at response
+  hosts: all
+  gather_facts: false
+  tasks:
+    - uri:
+        url: http://api.myapp.com
+        return_content: yes
+      register: apiresponse
+
+    - fail:
+        msg: 'version was not provided'
+      when: "'version' not in apiresponse.content"

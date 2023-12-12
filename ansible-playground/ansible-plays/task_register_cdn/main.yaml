@@ -1,0 +1,10 @@
+- name: Register to CDN
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Register and subscribe the system
+      redhat_subscription:
+        username: yourusername
+        password: yourpassword
+        pool_ids: poolID
+        state: present

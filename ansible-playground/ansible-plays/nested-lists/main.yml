@@ -1,0 +1,11 @@
+- name: print the new list
+  hosts: localhost
+  gather_facts: no
+  vars_files: var-file.yml
+  tasks:
+    copy:
+      dest: new_file.txt
+      content: |
+        user= "{{ item.0.name }}"
+        key= "{{ query('file', item.1) }}"
+    loop: "{{ users|subelements('authorized') }}"

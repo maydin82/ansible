@@ -1,0 +1,12 @@
+- name: Add authorized keys
+  hosts: all
+  vars:
+    users:
+      - fred
+      - naoko
+  tasks:
+    - name: Add authorized keys
+      authorized_key:
+        user: "{{ item }}"
+        key: "{{ lookup('file', item + '.key.pub') }}"
+      loop: "{{ users }}"

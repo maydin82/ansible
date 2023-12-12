@@ -1,0 +1,12 @@
+[prod]
+manager ansible_user=ansible_mustafa
+
+[vms]
+kvm1 ansible_user=ansible_mustafa
+
+[nested_group:children]
+vms
+prod
+
+#[prod:vars]
+#package=httpd

@@ -1,0 +1,19 @@
+---
+- name: playbook to set up customer facts on remote hosts
+  hosts: webservers
+  become: yes
+  vars: 
+    remote_dir: /etc/ansible/facts.d
+    facts_file: custom.fact
+  tasks: 
+  - name: create the folder {{ remote_dir }}
+    file: 
+      state: directory
+      recurse: yes
+      path: "{{ remote_dir }}"
+
+  - name: copy the facts file
+    copy:
+      src: "{{ facts_file }}"
+      dest: "{{ remote_dir }}"
+    

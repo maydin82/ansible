@@ -1,0 +1,11 @@
+- name: If the file does not exist, the stat task will not fail, but its registered variable will report false for stat.exists
+  hosts: all
+  tasks:
+    - name: Check if /var/run/app.lock exists
+      stat:
+        path: /var/run/app.lock
+      register: lock
+
+    - name: Fail if the application is running
+      fail:
+      when: lock.stat.exists

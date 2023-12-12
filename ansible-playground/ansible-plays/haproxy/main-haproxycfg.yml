@@ -1,0 +1,17 @@
+# Log-level for HAProxy logs
+haproxy_log_level: info
+
+# Port exposed to clients
+haproxy_port: 80
+
+# Name for the default backend
+haproxy_backend_name: app
+
+# Port backend is exposed to
+haproxy_backend_port: 80
+...output omitted...
+# The default is no defined backend servers.
+haproxy_appservers: []
+...output omitted...
+# Socket used to communicate with haproxy service. DO NOT CHANGE
+haproxy_socket: /var/run/haproxy.sock

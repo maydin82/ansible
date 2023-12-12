@@ -1,0 +1,23 @@
+- name: open firewall ports 
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: Install firewalld 
+      yum:
+        name: firewalld
+        state: present
+
+    - name: Ensure firewalld service is started and enabled
+      service:
+        name: firewalld
+        state: started
+        enabled: yes
+
+    - name: firewalld permits 6800-7300 ports
+      firewalld:
+        port: 6800-7300/tcp
+        permanent: yes
+        state: enabled
+        immediate: yes
+

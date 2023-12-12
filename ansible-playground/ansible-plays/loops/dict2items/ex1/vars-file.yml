@@ -1,0 +1,10 @@
+users:
+  johnd:
+    firstname: John
+    surname: Doe
+    pub_key_file: file1
+  janed:
+    firstname: Jane
+    surname: Doe
+    pub_key_file: file2
+

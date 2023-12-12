@@ -1,0 +1,12 @@
+#sometimes you might want to assign the facts collected by a delegated task to the host to which the task was delegated
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: Set a fact in delegated task on servera
+      set_fact:
+        myfact: Where am I set?
+      delegate_to: servera.lab.example.com
+      delegate_facts: True
+    - name: Display the facts from servera.lab.example.com
+      debug:
+        msg: "{{ hostvars['servera.lab.example.com']['myfact'] }}"

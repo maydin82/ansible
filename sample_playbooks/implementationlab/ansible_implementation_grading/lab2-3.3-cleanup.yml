@@ -1,0 +1,22 @@
+- hosts: localhost
+  tasks:
+  - include_role:
+      name: inventory
+
+- hosts: webserver
+  become: yes
+  tasks:
+  - name: Delete files
+    file:
+      path: "{{ item }}"
+      state: absent
+    loop:
+     - /etc/httpd/conf.d/vhosts.conf
+     - /var/www/vhosts/app1-secure/
+  - name: Remove httpd
+    yum:
+      name: "{{ item }}"
+      state: absent
+    loop:
+     - httpd
+     - mod_ssl

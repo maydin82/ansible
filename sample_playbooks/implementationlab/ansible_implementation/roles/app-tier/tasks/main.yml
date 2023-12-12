@@ -1,0 +1,62 @@
+---
+- name: Install firewalld
+  yum:
+    name: firewalld
+    state: latest
+- name: Start firewalld service
+  service:
+    name: firewalld
+    state: started
+    enabled: true
+- name: Install httpd
+  yum: 
+    name: "{{ item }}"
+    state: latest
+  with_items:
+    - "{{ httpd_pkg }}"
+
+- name: Start httpd
+  service:
+    name: "{{ httpd_srv }}"
+    state: started
+    enabled: true
+
+- name: copy vhost temp file
+  template:
+    src: vhost.cong.j2
+    dest: /etc/httpd/conf.d/vhost.conf
+  notify: restart httpd
+
+- name: Create doc root
+  file:
+    path: /var/www/vhost
+    state: directory
+
+- name: Copy index.j2
+  template:
+    src: index.j2
+    dest: /var/www/vhost/index.pnp
+    mode: 0644
+    owner: apache
+    group: apache
+
+- name: open httpd port
+  firewalld:
+    service: http
+    state: enabled
+    immediate: true
+    permanent: true
+
+- name: enable selinux boolean
+  seboolean:
+    name: "{{ item }}"
+    state: yes
+    persistent: yes
+  loop:
+    - httpd_can_network_connect_db
+    - httpd_can_network_connect
+
+
+    
+
+

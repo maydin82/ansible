@@ -1,0 +1,12 @@
+- name: Use GitLab API to get user data
+  uri:
+    url: https://git.lab.example.com/api/v4/users/
+    method: GET
+    headers:
+      Private-Token: "{{ my_private_token }}"
+    return_content: yes
+    register: gitlab_api_result
+- name: Print user names
+  debug:
+    msg: A valid username is {{ item['username'] }}
+  loop: "{{ gitlab_api_result['json'] }}"

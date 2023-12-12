@@ -1,0 +1,9 @@
+## requires to install  python3-dns 
+---
+    - name: dns lookup
+      hosts: localhost
+      gather_facts: false
+      tasks:
+        - name: Determinte if host's ip address is private
+          debug:
+            msg: "{{ lookup('dig', 'www.google.com') }}"

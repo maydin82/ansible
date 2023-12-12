@@ -1,0 +1,12 @@
+  - name: Remove the server from HAProxy
+    haproxy:
+      state: disabled
+      host: "{{ ansible_facts['fqdn'] }}"
+      socket: /var/lib/haproxy/stats
+    delegate_to: "{{ item }}"
+    loop: "{{ groups['lbservers'] }}"
+
+  - name: Make sure Apache HTTPD is stopped
+    service:
+      name: httpd
+      state: stopped

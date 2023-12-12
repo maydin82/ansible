@@ -1,0 +1,16 @@
+INV
+---
+inventory directory
+variable in inv file
+server groups
+child group
+
+- use groupvar
+- use var file
+- use playbook var
+- use facts variable
+- check the web page functionality
+- firewalld, service, yum
+
+
+

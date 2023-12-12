@@ -1,0 +1,20 @@
+---
+- name: install webserver
+  hosts: webservers
+  become: yes
+  tasks: 
+  - name: install apache
+    yum:
+      name: httpd
+      state: latest
+  - name: start httpd service
+    service: 
+      name: httpd
+      state: started
+      enabled: yes
+
+  - name: copy the content 
+    copy: 
+      content: "Hoorraaayyy!!! My first playbook ran successfully"
+      dest: /var/www/html/index.html
+  

@@ -1,0 +1,9 @@
+    - name: install httpd
+      yum:
+        name: httpd
+        state: present
+    - name: check the uptime
+      service:
+        name: httpd
+        state: restarted
+      changed_when: false
