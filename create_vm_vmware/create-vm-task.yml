@@ -1,6 +1,7 @@
 
 - name: Create a VM
   vmware.vmware_rest.vcenter_vm:
+  vcenter_rest_log_file: /tmp/vmware_rest
     placement:
       cluster: "{{ lookup('vmware.vmware_rest.cluster_moid', '/' + datacenter + '/host/' + cluster ) }}"
       datastore: "{{ lookup('vmware.vmware_rest.datastore_moid', '/' + datacenter + '/datastore/' + datastore ) }}"
@@ -30,3 +31,7 @@
         type: DISTRIBUTED_PORTGROUP
         network: "{{ lookup('vmware.vmware_rest.network_moid', '/' + datacenter + '/network /' + network ) }}"
   register: _result
+
+
+- name: restlog
+  shell: cat /tmp/vmware_rest
