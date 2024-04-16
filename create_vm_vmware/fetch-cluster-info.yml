@@ -1,0 +1,13 @@
+- name: Build a list of all the folders
+  vmware.vmware_rest.vcenter_folder_info:
+  register: my_folders
+
+- debug:
+    var: my_folders
+
+- name: Build a list of all the clusters
+  vmware.vmware_rest.vcenter_cluster_info:
+  register: all_the_clusters
+
+- debug:
+    var: all_the_clusters

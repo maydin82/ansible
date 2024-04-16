@@ -4,4 +4,5 @@
   connection: local
   
   tasks:
+    - include_tasks: fetch-cluster-info.yml
     - include_tasks: create-vm-task.yml
