@@ -1,3 +1,4 @@
+datacenter: "SDDC-Datacenter"
 cluster: "Cluster-1"
 datastore: "WorkloadDatastore"
 folder: "sandbox-25xh6"
