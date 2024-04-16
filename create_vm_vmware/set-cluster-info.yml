@@ -26,7 +26,7 @@
 
 - name: Set the actual datastore
   set_fact:
-    cluster: "{{ the_datastore.datastore }}"
+    datastore: "{{ the_datastore.datastore }}"
 
 - name: Get the dvswitch called my-portgroup
   vmware.vmware_rest.vcenter_network_info:
@@ -35,4 +35,4 @@
 
 - name: Set the actual network
   set_fact:
-    network: "{{ the_datastore.network }}"
+    network: "{{ my_portgroup.network }}"

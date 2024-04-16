@@ -1,7 +1,6 @@
-datacenter: "SDDC-Datacenter"
-cluster: "Cluster-1"
-datastore: "WorkloadDatastore"
-folder: "sandbox-25xh6"
+cluster_name: "Cluster-1"
+datastore_name: "WorkloadDatastore"
+folder_name: "sandbox-25xh6"
 vmname: testvm
 memory: 2048
 disk_capacity: 214748364800
