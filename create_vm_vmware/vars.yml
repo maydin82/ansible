@@ -1,0 +1,17 @@
+cluster_name: "Cluster-1"
+datastore_name: "WorkloadDatastore"
+folder_name: "sandbox-25xh6"
+memory: 2048
+disk_capacity: 214748364800
+network_name: "segment-sandbox-25xh6"
+
+ocpnodes_vms:
+  - vm_name: master0
+    role: master
+    ip: 1.1.1.1
+  - vm_name: master1
+    role: master
+    ip: 2.2.2.2
+  - vm_name: master2
+    role: master
+    ip: 3.3.3.3

@@ -1,7 +1,0 @@
-cluster_name: "Cluster-1"
-datastore_name: "WorkloadDatastore"
-folder_name: "sandbox-25xh6"
-vmname: testvm
-memory: 2048
-disk_capacity: 214748364800
-network_name: "segment-sandbox-25xh6"

@@ -6,7 +6,7 @@
       cluster: "{{ cluster  }}"
       datastore: "{{ datastore  }}"
       folder: "{{ folder  }}"
-    name: "{{ vmname }}"
+    name: "{{ item }}"
     guest_OS: RHEL_8_64
     cpu:
       count: 8
@@ -19,7 +19,7 @@
     disks:
     - type: SCSI
       new_vmdk:
-        name: "{{ vmname }}-first_disk"
+        name: "{{ item }}-first_disk"
         capacity: "{{ disk_capacity }}"
     cdroms:
     - type: SATA

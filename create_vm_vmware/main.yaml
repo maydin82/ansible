@@ -4,6 +4,7 @@
   connection: local
   
   tasks:
-    - include_vars: vcenter_vars_dyn.yml
+    - include_vars: vars.yml
     - include_tasks: set-cluster-info.yml
     - include_tasks: create-vm-task.yml
+      loop: "{{ ocpnodes_vms.vm_name }}"

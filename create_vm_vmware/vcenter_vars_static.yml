@@ -1,7 +1,0 @@
-cluster: "domain-c43"
-datastore: "datastore-48"
-folder: "group-v1548753"
-vmname: testvm
-memory: 2048
-disk_capacity: 214748364800
-network: "dvportgroup-1548751"
