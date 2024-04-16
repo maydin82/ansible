@@ -1,0 +1,7 @@
+- name: "Create a new VM at VMWARE"
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  
+  tasks:
+    - include_tasks: create-vm-task.yml
