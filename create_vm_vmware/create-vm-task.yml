@@ -1,9 +1,9 @@
 - name: Create a VM
   vmware.vmware_rest.vcenter_vm:
     placement:
-      cluster: "{{ my_cluster_info.id }}"
-      datastore: "{{ my_datastore.datastore }}"
-      folder: "{{ my_virtual_machine_folder.folder }}"
+      cluster: "{{ cluster }}"
+      datastore: "{{ datastore }}"
+      folder: "{{ folder }}"
     name: test_vm1
     guest_OS: RHEL_8_64
     cpu:
@@ -17,6 +17,6 @@
     disks:
     - type: SATA
       new_vmdk:
-        name: second_disk
-        capacity: 214748364800
+        name: first_disk
+        capacity: "{{ disk_capacity }}"
   register: _result
