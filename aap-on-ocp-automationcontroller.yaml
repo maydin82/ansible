@@ -1,0 +1,53 @@
+apiVersion: automationcontroller.ansible.com/v1beta1
+kind: AutomationController
+metadata:
+  name: ac
+  namespace: rd-it-di-ansible-automation-platform-production
+spec:
+  admin_email: admin@example.com
+  admin_user: admin
+  auto_upgrade: true
+  bundle_cacert_secret: ac-custom-certs
+  create_preload_data: true
+  ee_resource_requirements:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 512Mi
+  garbage_collect_secrets: false
+  hostname: aap.rnd.nxp.com
+  image_pull_policy: IfNotPresent
+  ingress_type: Route
+  loadbalancer_port: 80
+  loadbalancer_protocol: http
+  no_log: true
+  nodeport_port: 30080
+  postgres_storage_requirements:
+    requests:
+      storage: 25Gi
+  projects_persistence: true
+  projects_storage_access_mode: ReadWriteMany
+  projects_storage_size: 50Gi
+  replicas: 1
+  route_host: aap.rnd.nxp.com
+  route_tls_secret: ac-tls-secret
+  route_tls_termination_mechanism: Edge
+  set_self_labels: true
+  task_privileged: false
+  task_resource_requirements:
+    limits:
+      cpu: 1000m
+      memory: 3Gi
+    requests:
+      cpu: 200m
+      memory: 2Gi
+  web_resource_requirements:
+    limits:
+      cpu: 1000m
+      memory: 3Gi
+    requests:
+      cpu: 200m
+      memory: 2Gi
+

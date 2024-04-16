@@ -1,0 +1,14 @@
+#- name: Print MACAddress for matching nodes
+#  debug:
+#    msg: "MACAddress: {{ item.MACAddress }}"
+#  loop: "{{ redfish_facts.nic.entries[0][1] }}"
+#  when:
+#   - item.Id in ocpnodes_bms | selectattr('bm_vendor', 'equalto', 'dell') | map(attribute='interfaces') | flatten
+
+
+- name: Print MACAddress for matching nodes
+  debug:
+    msg: "MACAddress: {{ item.MACAddress }}"
+  loop: "{{ redfish_facts.nic.entries[0][1] }}"
+  when:
+   - item.Id in ocpnodes_bms | map(attribute='interfaces') | flatten

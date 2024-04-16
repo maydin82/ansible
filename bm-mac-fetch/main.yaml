@@ -1,0 +1,18 @@
+- name: "[Play 1] upload image to data_new datastore"
+  hosts: localhost
+  gather_facts: false
+  connection: local
+  
+  tasks:
+    - name: Include JSON variables file
+      include_vars:
+        file: output-hp.json
+
+
+    - name: Include JSON variables file
+      include_vars:
+        file: vars.yaml
+    # Optionally, you can debug/print the variable to verify
+    - debug:
+        var: redfish_facts
+    - include_tasks: task-temp.yml

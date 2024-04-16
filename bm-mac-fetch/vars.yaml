@@ -1,0 +1,13 @@
+
+ocpnodes_bms:
+  - bm_name: worker0
+    bm_vendor: dell
+    interfaces:
+      - NIC.Slot.6-1-1
+      - NIC.Integrated.1-1-1
+
+  - bm_name: worker1
+    bm_vendor: hp
+    interfaces:
+      - "2"
+      - "4"
