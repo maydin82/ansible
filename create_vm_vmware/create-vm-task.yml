@@ -27,6 +27,5 @@
         unit: 2
     nics:
     - backing:
-        type: STANDARD_PORTGROUP
         network: "{{ network }}"
   register: _result
