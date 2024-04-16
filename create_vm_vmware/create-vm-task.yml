@@ -27,5 +27,6 @@
         unit: 2
     nics:
     - backing:
+        type: DISTRIBUTED_PORTGROUP
         network: "{{ network }}"
   register: _result
