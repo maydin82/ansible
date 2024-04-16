@@ -2,9 +2,9 @@
 - name: Create a VM
   vmware.vmware_rest.vcenter_vm:
     placement:
-      cluster: "{{ lookup('vmware.vmware_rest.cluster_moid', '/{{ datacenter }}/host/{{ cluster }}') }}"
-      datastore: "{{ lookup('vmware.vmware_rest.datastore_moid', '/{{ datacenter }}/datastore/{{ datastore }}') }}"
-      folder: "{{ lookup('vmware.vmware_rest.folder_moid', '/{{ datacenter }}/vm/{{ folder }}') }}"
+      cluster: "{{ lookup('vmware.vmware_rest.cluster_moid', '/' + datacenter + '/host/' + cluster ) }}"
+      datastore: "{{ lookup('vmware.vmware_rest.datastore_moid', '/' + datacenter + '/datastore/' + datastore ) }}"
+      folder: "{{ lookup('vmware.vmware_rest.folder_moid', '/' + datacenter + '/vm/' + folder ) }}"
     name: "{{ vmname }}"
     guest_OS: RHEL_8_64
     cpu:
@@ -28,5 +28,5 @@
     nics:
     - backing:
         type: DISTRIBUTED_PORTGROUP
-        network: "{{ network }}"
+        network: ""{{ lookup('vmware.vmware_rest.network_moid', '/' + datacenter + '/network /' + network ) }}""
   register: _result
