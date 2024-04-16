@@ -28,3 +28,11 @@
 
 - debug:
     var: all_the_datastores
+
+
+- name: Get the dvswitch called my-portgroup
+  vmware.vmware_rest.vcenter_network_info:
+  register: my_portgroup
+
+- debug:
+    var: my_portgroup
