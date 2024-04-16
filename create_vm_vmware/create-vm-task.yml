@@ -28,5 +28,5 @@
     nics:
     - backing:
         type: DISTRIBUTED_PORTGROUP
-        network: ""{{ lookup('vmware.vmware_rest.network_moid', '/' + datacenter + '/network /' + network ) }}""
+        network: "{{ lookup('vmware.vmware_rest.network_moid', '/' + datacenter + '/network /' + network ) }}"
   register: _result
