@@ -4,5 +4,6 @@
   connection: local
   
   tasks:
+    - include_vars: vcenter_vars_dyn.yml
     - include_tasks: fetch-cluster-info.yml
     - include_tasks: create-vm-task.yml
