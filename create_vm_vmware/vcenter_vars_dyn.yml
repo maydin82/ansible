@@ -4,4 +4,4 @@ folder: "sandbox-25xh6"
 vmname: testvm
 memory: 2048
 disk_capacity: 214748364800
-network: "segment-sandbox-25xh6"
+network_name: "segment-sandbox-25xh6"
