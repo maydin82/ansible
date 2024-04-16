@@ -20,3 +20,11 @@
 
 - debug:
     var: all_the_clusters
+
+
+- name: Build a list of all the datastores
+  vmware.vmware_rest.vcenter_datastore_info:
+  register: all_the_datastores
+
+- debug:
+    var: all_the_datastores
