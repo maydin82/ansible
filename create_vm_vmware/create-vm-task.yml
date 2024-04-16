@@ -3,9 +3,9 @@
   vmware.vmware_rest.vcenter_vm:
     vcenter_rest_log_file: /tmp/vmware_rest
     placement:
-      cluster: "{{ cluster ) }}"
-      datastore: "{{ datastore ) }}"
-      folder: "{{ folder ) }}"
+      cluster: "{{ cluster  }}"
+      datastore: "{{ datastore  }}"
+      folder: "{{ folder  }}"
     name: "{{ vmname }}"
     guest_OS: RHEL_8_64
     cpu:
@@ -29,7 +29,7 @@
     nics:
     - backing:
         type: DISTRIBUTED_PORTGROUP
-        network: "{{ network ) }}"
+        network: "{{ network  }}"
   register: _result
   ignore_errors: true
 
