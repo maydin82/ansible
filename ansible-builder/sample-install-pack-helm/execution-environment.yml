@@ -1,0 +1,23 @@
+---
+version: 3
+
+images:
+  base_image:
+    name: 'registry.redhat.io/ansible-automation-platform-24/ee-supported-rhel8:latest'
+
+dependencies:
+  system: 'bindep.txt'
+options:
+  package_manager_path: '/usr/bin/microdnf'
+
+additional_build_files:
+    - src: 'ansible.cfg'
+      dest: 'configs/'
+
+additional_build_steps:
+  prepend_galaxy:
+    - 'COPY _build/configs/ansible.cfg /home/runner/.ansible.cfg'
+  prepend_builder:
+    - 'ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --enablerepo=ocp-tools-4.14-for-rhel-8-x86_64-rpms"'
+  append_base:
+    - 'ENV PKGMGR_OPTS="--nodocs --setopt=install_weak_deps=0 --enablerepo=ocp-tools-4.14-for-rhel-8-x86_64-rpms"'
