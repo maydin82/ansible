@@ -1,0 +1,35 @@
+- name: Check Disk
+  hosts: "{{ vm_name }}"
+  gather_facts: false
+  tasks:
+    - name: Disk Check Yml
+      shell: journalctl -k | grep -i error |grep "I/O" 
+      register: kernel_disk_error_check
+      ignore_errors: true
+
+    - name: memory check yml
+      shell: journalctl -k | grep -i "oom\|page fault\|hugepage allocation failed"
+      register: kernel_memory_error_check
+      ignore_errors: true
+
+    - name: taint check yml
+      shell: journalctl -k | grep -i taint
+      register: kernel_taint_error_check
+      ignore_errors: true
+
+
+    - name: Print hosts with taint error
+      debug:
+        msg: "Host {{ inventory_hostname }} has the taint error."
+      when: kernel_taint_error_check.rc == 0 
+
+
+    - name: Print hosts with Disk or Swap error
+      debug:
+        msg: "Host {{ inventory_hostname }} has the disk  error."
+      when: kernel_disk_error_check.rc == 0 
+
+    - name: Print hosts with  memory check
+      debug:
+        msg: "Host {{ inventory_hostname }} has the  memory  error."
+      when:  kernel_memory_error_check.rc == 0 

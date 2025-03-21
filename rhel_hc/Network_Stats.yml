@@ -1,0 +1,227 @@
+- name: localhost
+  hosts: localhost
+  gather_facts: no
+  tasks:
+
+    - name: remove file before
+      file:
+        path: healtcheck_network_stats.txt 
+        state: absent
+
+    - name: remove file after
+      file:
+        path: healtcheck_network_stats_new.txt
+        state: absent
+
+    - name: save output before
+      lineinfile:
+        path: healtcheck_network_stats.txt
+        line: "vm_stats:"
+        create: yes
+
+
+    - name: save output after
+      lineinfile:
+        path: healtcheck_network_stats_new.txt
+        line: "vm_stats_new:"
+        create: yes
+      when: compare == 'yes'
+
+
+
+- name: Get network interface statistics
+  hosts: "{{ vm_name }}"
+  serial: 1
+  ignore_unreachable: true
+  gather_subset: network
+  tasks:
+    - name: Read /proc/net/dev
+      shell: cat /proc/net/dev
+      register: net_dev_output
+      ignore_unreachable: true
+
+
+    - include_tasks: Network_stats_before.yml
+      loop: "{{ ansible_facts.interfaces }}"
+      vars:
+        iface_data: "{{ net_dev_output.stdout_lines | select('search', '^ *' + item + ':') | list | first | split() }}"
+      ignore_errors: true
+      when: item not in ['lo', 'docker0']
+
+                        
+
+- name: localhost
+  hosts: localhost
+  vars_files:
+   - healtcheck_network_stats.txt
+  gather_facts: no
+  vars:
+    - threshold: 1
+  tasks:
+
+    - name: cat output healtcheck_network_stats
+      shell: cat healtcheck_network_stats.txt 
+
+
+
+    - name: Print VM and interface if any of the stats are greater threshold
+      debug:
+        msg: "{{ item.key }} - Interface: {{ item.value.interface }}"
+      loop: "{{ vm_stats | dict2items }}"
+      when: (item.value.RX_Errors | int / item.value.RX_Package ) * 100 > threshold or (item.value.RX_Dropped | int / item.value.RX_Package ) * 100 > threshold or (item.value.TX_Errors | int / item.value.TX_Package ) * 100 > threshold or (item.value.TX_Dropped | int / item.value.TX_Package ) * 100 > threshold
+
+- name: Get network interface statistics After 
+  hosts: "{{ vm_name }}"
+  vars:
+    -  network_stats_sleep_time: 10
+  serial: 1
+  ignore_unreachable: true
+  gather_subset: network
+  tasks:
+    - name: Check the network_stats After
+      block:
+        - name: sleep for "{{  network_stats_sleep_time }}"
+          shell: sleep "{{  network_stats_sleep_time }}"
+
+        - name: Read /proc/net/dev
+          shell: cat /proc/net/dev
+          register: net_dev_output
+          ignore_unreachable: true
+    
+    
+        - include_tasks: Network_stats_after.yml
+          loop: "{{ ansible_facts.interfaces }}"
+          vars:
+            iface_data: "{{ net_dev_output.stdout_lines | select('search', '^ *' + item + ':') | list | first | split() }}"
+          ignore_errors: true
+          when: item not in ['lo', 'docker0']
+      when: compare == 'yes'
+
+
+- name: localhost
+  hosts: localhost
+  vars_files:
+   - healtcheck_network_stats_new.txt
+   - healtcheck_network_stats.txt
+  gather_facts: no
+  tasks:
+    - name: block new_stats
+      block:
+        - name: cat output
+          shell: cat healtcheck_network_stats_new.txt 
+    
+        - name: vm_stats_new variable
+          debug:
+            var: vm_stats_new
+    
+        - name: vm_stats variable
+          debug:
+            var: vm_stats
+      when: compare == 'yes'
+
+
+    - name: Compare VM stats
+      vars:
+        vms: "{{ vm_stats.keys() | union(vm_stats_new.keys()) | list }}"
+      debug:
+        msg: >-
+          {% set vm = item %}
+          {% if vm in vm_stats and vm in vm_stats_new %}
+            {% set stats_old = vm_stats[vm] %}
+            {% set stats_new = vm_stats_new[vm] %}
+            {% set differences = [] %}
+            {% if stats_old.RX_Errors != stats_new.RX_Errors %}
+              {% set _ = differences.append('RX_Errors: ' + stats_old.RX_Errors|string + ' -> ' + stats_new.RX_Errors|string) %}
+            {% endif %}
+            {% if stats_old.RX_Dropped != stats_new.RX_Dropped %}
+              {% set _ = differences.append('RX_Dropped: ' + stats_old.RX_Dropped|string + ' -> ' + stats_new.RX_Dropped|string) %}
+            {% endif %}
+            {% if stats_old.TX_Errors != stats_new.TX_Errors %}
+              {% set _ = differences.append('TX_Errors: ' + stats_old.TX_Errors|string + ' -> ' + stats_new.TX_Errors|string) %}
+            {% endif %}
+            {% if stats_old.TX_Dropped != stats_new.TX_Dropped %}
+              {% set _ = differences.append('TX_Dropped: ' + stats_old.TX_Dropped|string + ' -> ' + stats_new.TX_Dropped|string) %}
+            {% endif %}
+            {% if differences %}
+              {{ vm }}: {{ differences | join(', ') }}
+            {% else %}
+              No differences found for {{ vm }}.
+            {% endif %}
+          {% elif vm in vm_stats %}
+            VM {{ vm }} found only in vm_stats.
+          {% elif vm in vm_stats_new %}
+            VM {{ vm }} found only in vm_stats_new.
+          {% endif %}
+      loop: "{{ vms }}"
+      when: compare == 'yes'
+
+
+- name: Get network tcp retransmit percentage
+  hosts: "{{ vm_name }}"
+  ignore_unreachable: true
+  tasks:
+    - name: Get retransmitted segments count
+      shell: "cat /proc/net/snmp |grep Tcp | tail -1  |cut -d ' ' -f 13"
+      register: retrans_count_output
+
+    - name: Extract retransmitted segments count
+      set_fact:
+        retransmitted_segments: "{{ retrans_count_output.stdout |int }}"
+
+    - name: Get total TCP connections count
+      shell: "cat /proc/net/snmp |grep Tcp | tail -1  |cut -d ' ' -f 12"
+      register: total_count_output
+
+    - name: Extract total TCP connections count
+      set_fact:
+        total_segments: "{{ total_count_output.stdout | int }}"
+
+    - name: Calculate retransmit percentage
+      set_fact:
+        retransmit_percentage: "{{ (retransmitted_segments |int / total_segments |int * 100) | round(2) }}"
+      when: retransmitted_segments is defined and total_segments is defined
+
+    - name: Display retransmit percentage
+      debug:
+        msg: "TCP Retransmit Percentage: {{ retransmit_percentage }}%"
+    - name: Alert if percentage exceeds threshold
+      debug:
+        msg: "WARNING: TCP Retransmit Percentage ({{ retransmit_percentage }}%) exceeds threshold ({{ threshold_percentage }}%)"
+      when: retransmit_percentage is defined and retransmit_percentage |float > threshold_percentage |float
+
+    - name: retransmit_percentage data compare after 6s from now set fact retransmit_percentage_now and compare with retransmit_percentage and retransmit_percentage_now
+      block:
+        - name: sleep for "{{ TCP_sleep_time  }}" 
+          shell: sleep "{{ TCP_sleep_time  }}"
+
+        - name: Get retransmitted segments count
+          shell: "cat /proc/net/snmp |grep Tcp | tail -1  |cut -d ' ' -f 13"
+          register: retrans_count_output_now
+
+        - name: Extract retransmitted segments count
+          set_fact:
+            retransmitted_segments_now: "{{ retrans_count_output_now.stdout |int }}"
+
+        - name: Get total TCP connections count
+          shell: "cat /proc/net/snmp |grep Tcp | tail -1  |cut -d ' ' -f 12"
+          register: total_count_output_now
+
+        - name: Extract total TCP connections count
+          set_fact:
+            total_segments_now: "{{ total_count_output_now.stdout | int }}"
+
+        - name: Calculate retransmit percentage
+          set_fact:
+            retransmit_percentage_now: "{{ (retransmitted_segments_now |int / total_segments_now |int * 100) |round(2)}}"
+          when: retransmitted_segments_now is defined and total_segments_now is defined
+
+        - name: Display retransmit percentage
+          debug:
+            msg: "TCP Retransmit Percentage: {{ retransmit_percentage_now }}%"
+        - name: Compare  retransmit_percentage_now and retransmit_percentage data when both are different 
+          debug:
+            msg: "WARNING: TCP Retransmit Percentage ({{ retransmit_percentage }}%) and TCP Retransmit Percentage Now ({{ retransmit_percentage_now }}%) are different"
+          when: retransmit_percentage is defined and retransmit_percentage_now is defined and retransmit_percentage != retransmit_percentage_now
+        
+      
+    

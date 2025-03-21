@@ -1,0 +1,254 @@
+- name: Check Rhel Os State
+  hosts: "{{ vm_name }}"
+  ignore_unreachable: true
+
+  tasks:
+    - name: print os version
+      debug:
+        msg: "OS Version is {{ ansible_distribution_version }}"
+    
+
+    - name: Gather the package facts
+      ansible.builtin.package_facts:
+        manager: auto
+    
+    - name: Print the package facts
+      ansible.builtin.debug:
+        var: ansible_facts.packages
+
+    - name: check /etc/login.defs
+      ansible.builtin.shell: cat /etc/login.defs
+      register: login_defs
+      ignore_errors: true
+    
+    - name: Run lsblk
+      shell: lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE,PARTUUID,UUID -J
+      register: lsblk_output
+      when: ansible_distribution_major_version >= '8'
+
+    - name: Run lsblk
+      shell: lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE,PARTUUID,UUID
+      register: lsblk_output
+      when: ansible_distribution_major_version == '7'
+
+    # - name: Print disk names
+    #   debug:
+    #     msg: "{{ item }}"
+    #   loop: "{{ lsblk_output.stdout_lines | from_json | json_query('blockdevices[*]') }}"
+    #   when: 
+    #   - item.type == "disk"
+    #   - ansible_distribution_major_version >= '8'
+      
+    - name: Display name servers and domain search
+      debug:
+        msg: "Search domains: {{ ansible_facts['dns']['search'] }} Name servers: {{ ansible_facts['dns']['nameservers'] }}"
+      when: 
+        - ansible_facts['dns'] is defined and ansible_facts['dns']['nameservers'] is defined
+        - ansible_facts['dns'] is defined and ansible_facts['dns']['search'] is defined
+    
+
+    - name: yum install tune package
+      ansible.builtin.yum:
+        name: tuned
+        state: present
+
+    - name: enable tune service
+      ansible.builtin.systemd:
+        name: tuned
+        enabled: yes
+        state: started
+
+    - name: Get active tuned profile
+      shell: tuned-adm active
+      register: tuned_profile_output
+      ignore_errors: true
+    
+    - name: Display active tuned profile
+      debug:
+        msg: "{{ tuned_profile_output.stdout | regex_replace('^Current active profile: (.*)$', '\\1') }}"
+      when: tuned_profile_output.rc == 0
+
+
+    - name: Run getenforce
+      shell: getenforce
+      register: selinux_status_output
+    
+    - name: Display SELinux status
+      debug:
+        msg: "SELinux status: {{ selinux_status_output.stdout }}"
+      when: selinux_status_output.rc == 0
+
+    - name: Check Services block
+      block:
+        - name:
+          set_fact:
+            service_names: "{{ survey_service_names.split('\n') }}"
+    
+        - name: Check service status
+          shell: "systemctl is-active {{ service_item }}"
+          register: service_status
+          ignore_errors: true
+          loop: "{{ service_names }}"
+          loop_control:
+            loop_var: service_item
+
+        - name: Display service running message
+          debug:
+            msg: "{{ service_item }} is running"
+          when: service_status.results[service_names.index(service_item)].rc == 0
+          loop: "{{ service_names }}"
+          loop_control:
+            loop_var: service_item
+
+        - name: Display service not running message
+          debug:
+            msg: "{{ service_item }} is not running"
+          when: service_status.results[service_names.index(service_item)].rc != 0
+          loop: "{{ service_names }}"
+          loop_control:
+            loop_var: service_item
+
+
+      when: survey_service_names is defined
+
+
+
+  
+
+    - name: System failed Services loop_control
+      block:
+        - name: Get failed services
+          shell: systemctl --failed --no-legend --no-pager | awk '{print $1}'
+          register: failed_services
+          ignore_errors: true # In case there are no failed services
+
+         
+        - name: Print failed services
+          debug:
+            msg: "Failed services: {{ failed_services.stdout  }}"
+          when: failed_services.stdout is defined and failed_services.stdout | length > 0
+ 
+        - name: Inform if no failed services
+          debug:
+            msg: "No failed services found."
+          when: failed_services.stdout is not defined or failed_services.stdout | length == 0
+    
+    - name: Journalctl find errors except kernel
+      block:
+       - name: Run journalctl and extract error messages
+         shell: journalctl -p err --no-pager | grep -vi "kernel"
+         register: journalctl_output
+       
+       - name: Extract unique error messages
+         set_fact:
+           unique_errors: "{{ journalctl_output.stdout_lines | map('regex_replace', '.*?: (.*)', '\\1') | unique }}"
+    
+       - name: Print unique error messages
+         debug:
+           var: unique_errors
+
+    - name: Check steal time from cat /proc/stat  |grep cpu |head -1 |cut -d ' ' -f10 and is greater then 0 write warninng message
+      block:
+        - name: Get steal time
+          shell: cat /proc/stat  |grep cpu |head -1 |cut -d ' ' -f10
+          register: steal_time_output
+          ignore_errors: true
+        - name: Display steal time
+          debug:
+            msg: "Steal time: {{ steal_time_output.stdout }}"
+          when: steal_time_output.stdout | int > 0
+
+        - name: Alert if steal time exceeds threshold
+          debug:
+            msg: "WARNING: Steal time ({{ steal_time_output.stdout }}) "
+          when: steal_time_output.stdout | int > 0
+      
+
+    # - name: Get system load and CPU count
+    #   shell: "awk '{print $1}' /proc/loadavg"
+    #   register: load_avg
+    
+    # - name: Get CPU count
+    #   shell: "nproc"
+    #   register: cpu_count
+
+    # - name: Print warning if load is high
+    #   debug:
+    #     msg: "⚠️ WARNING: High Load Detected!  Load ({{ load_avg }}) > CPU Count ({{ cpu_count.stdout }})"
+    #   when: load_avg | float > cpu_count.stdout | int
+
+
+    # - name: Get system boot time (in microseconds)
+    #   shell: "cat /proc/uptime | awk '{print $1 * 1000000}'"
+    #   register: boot_time_microseconds
+    
+    # - name: Get all running services
+    #   shell: "systemctl list-units --type=service --state=running --no-pager --no-legend | awk '{print $1}'"
+    #   register: running_services
+    
+    # - name: Check each service start time
+    #   block:
+    #     - name: Get service start time in microseconds
+    #       shell: "systemctl show -p ExecMainStartTimestampMonotonic {{ item }} | cut -d= -f2"
+    #       register: service_start_time
+    #       loop: "{{ running_services.stdout_lines }}"
+    #       ignore_errors: yes  # Some services might not have a valid timestamp
+    
+    # - name: Calculate delay for each service (convert to seconds)
+    #   set_fact:
+    #     late_services: "{{ late_services | default([]) + [ { 'service': item.item } ] }}"
+    #   when: ((item.stdout | int - boot_time_microseconds |int ) / 1000000)  > 5
+    #   loop: "{{ service_start_time.results }}"
+    
+    # - name: Print warning if any service started late
+    #   debug:
+    #     msg: "⚠️ WARNING: The following services started more than 5 minutes after reboot: {{ late_services }}"
+    #   when: late_services is defined and late_services | length > 0
+
+
+
+    - name: Get system uptime in microseconds
+      shell: "awk '{print $1 * 1000000}' /proc/uptime"
+      register: boot_time_microseconds
+    
+    - name: Get all running services
+      shell: "systemctl list-units --type=service --state=running --no-pager --no-legend | awk '{print $1}'"
+      register: running_services
+    
+    - name: Check each service start time and enabled status
+      block:
+        - name: Get service start time
+          shell: "systemctl show -p ExecMainStartTimestampMonotonic {{ item }} | cut -d= -f2"
+          register: service_start_time
+          loop: "{{ running_services.stdout_lines }}"
+          ignore_errors: yes
+    
+        - name: Get if service is enabled
+          shell: "systemctl is-enabled {{ item }} || true"
+          register: service_enabled
+          loop: "{{ running_services.stdout_lines }}"
+          ignore_errors: yes
+    
+        - name: Identify services that did NOT start with boot
+          set_fact:
+            not_started_with_boot: "{{ not_started_with_boot | default([]) + [ item.item ] }}"
+          when:
+            - ((item.stdout | int) / 1000000) > 10  # Started more than 10 seconds after boot
+            - service_enabled.results | selectattr('item', 'equalto', item.item) | map(attribute='stdout') | list | first == "enabled"
+          loop: "{{ service_start_time.results }}"
+        
+        - name: Identify services that are NOT enabled
+          set_fact:
+            not_enabled_services: "{{ not_enabled_services | default([]) + [ item.item ] }}"
+          when: service_enabled.results | selectattr('item', 'equalto', item.item) | map(attribute='stdout') | list | first != "enabled"
+          loop: "{{ service_enabled.results }}"
+        
+    - name: Print services that did NOT start with boot
+      debug:
+        msg: "⚠️ WARNING: These enabled services did NOT start with boot: {{ not_started_with_boot }}"
+      when: not_started_with_boot is defined and not_started_with_boot | length > 0
+
+    - name: Print services that are NOT enabled
+      debug:
+        msg: "⚠️ WARNING: These services are NOT enabled at boot: {{ not_enabled_services }}"
+      when: not_enabled_services is defined and not_enabled_services | length > 0

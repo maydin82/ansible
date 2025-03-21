@@ -1,0 +1,67 @@
+---
+- name: Check avgqu-sz and await for critical disk I/O performance
+  hosts: "{{ vm_name }}" 
+  gather_facts: yes
+  ignore_unreachable: true
+  tasks:
+
+    - name: yum install tune package
+      ansible.builtin.yum:
+        name: sysstat
+        state: present
+
+    - name: Get list of all sd* devices
+      shell: "lsblk -d -n -o NAME |grep -v sr0"
+      register: disk_list
+      changed_when: false
+
+    # - name: Filter out sr0 from the disk list
+    #   set_fact:
+    #     disk_list: "{{ disk_list_all.stdout_lines | selectattr('search', 'match', '^sd') | list }}"
+
+    - name: Get iostat for each disk device
+      shell: "iostat -x 1 1 {{ item }} |grep {{ item }} |xargs"
+      loop: "{{ disk_list.stdout_lines }}"
+      register: iostat_output
+      changed_when: false
+
+
+
+    - name: Parse iostat output for each disk and extract avgqu-sz and await
+      set_fact:
+        disk_stats: "{{ disk_stats | default({}) | combine({ item.item: {'avgqu_sz': item.stdout_lines[0].split()[8], 'await': item.stdout_lines[0].split()[9]}}) }}"
+      loop: "{{ iostat_output.results }}"
+      when: 
+ 
+       - ansible_distribution_major_version == '7'
+
+    - name: Parse iostat output for each disk and extract avgqu-sz and await
+      set_fact:
+        disk_stats: "{{ disk_stats | default({}) | combine({ item.item: {'avgqu_sz': item.stdout_lines[0].split()[11], 'await': item.stdout_lines[0].split()[10]}}) }}"
+      loop: "{{ iostat_output.results }}"
+      when: 
+       - ansible_distribution_major_version >= '8'
+
+
+
+    - name: Check if avgqu-sz is above critical level for each disk
+      debug:
+        msg: "Warning: avgqu-sz is critical on {{ item }} with value {{ disk_stats[item]['avgqu_sz'] }}"
+      when: "{{ disk_stats[item]['avgqu_sz'] | int > 10 }}"
+      loop: "{{ disk_stats.keys() }}"
+
+    - name: Check if await is above critical level for each disk
+      debug:
+        msg: "Warning: await is critical on {{ item }} with value {{ disk_stats[item]['await'] }}"
+      when: "{{ disk_stats[item]['await'] | int > 50 }}"
+      loop: "{{ disk_stats.keys() }}"
+      
+    - name: Send an alert if avgqu-sz or await are in critical range for any disk
+      debug:
+        msg: "Critical Disk I/O: avgqu-sz > 10 or await > 50ms on disk {{ item }}"
+      when: 
+        - disk_stats[item]['avgqu_sz'] | int > 10
+        - disk_stats[item]['await'] | int > 50
+      loop: "{{ disk_stats.keys() }}"
+      run_once: true
+
